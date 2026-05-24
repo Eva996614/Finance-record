@@ -260,8 +260,8 @@ let S=JSON.parse(localStorage.getItem(KEY)||'null')||{
 function save(){localStorage.setItem(KEY,JSON.stringify(S));}
 
 // ── Helpers ──
-function fmt(n){const a=Math.abs(n);if(a>=10000)return'$'+(a/10000).toFixed(1)+'w';return'$'+a.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function fmtFull(n){return'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmt(n){return'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function fmtFull(n){return'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});}
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function monthOf(s){return s?s.slice(0,7):'';}
 function curMonth(){return today().slice(0,7);}
