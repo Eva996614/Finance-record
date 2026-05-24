@@ -117,6 +117,15 @@ html,body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans
 .toggle-btn{flex:1;padding:8px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;border:0.5px solid var(--line);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:inherit;transition:all .15s}
 .toggle-btn.active-exp{background:var(--red-dim);color:var(--red);border-color:transparent}
 .toggle-btn.active-inc{background:var(--green-dim);color:var(--green);border-color:transparent}
+
+/* ── Currency converter ── */
+.conv-box{background:var(--bg3);border-radius:var(--radius-sm);padding:12px 13px;margin-bottom:14px;border:0.5px solid var(--line)}
+.conv-row{margin-bottom:8px}
+.conv-select{width:100%;background:var(--bg4);border:0.5px solid var(--line);border-radius:6px;color:var(--text);font-family:'Noto Sans SC',sans-serif;font-size:13px;padding:7px 10px;outline:none;-webkit-appearance:none}
+.conv-result{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--green);min-height:26px;margin-bottom:6px}
+.conv-result.loading{color:var(--text3);font-size:13px;font-family:'Noto Sans SC',sans-serif}
+.conv-apply{width:100%;padding:9px;border-radius:6px;background:var(--green-dim);color:var(--green);border:none;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer}
+.conv-apply:active{opacity:.7}
 </style>
 </head>
 <body>
@@ -426,7 +435,7 @@ function openSheet(type,idx){
   if(type==='expense'||type==='income'){
     const cats=type==='expense'?S.expCats:S.incCats;
     const allAccs=type==='expense'?[...S.assets.map(a=>a.name),...S.debts.map(d=>d.name)]:S.assets.map(a=>a.name);
-    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">${type==='expense'?'📤 记录支出':'📥 记录收入'}</div><div class="sheet-body"><div class="form-group"><input class="form-input big" id="s-amount" type="number" inputmode="decimal" placeholder="0.00"/></div><div class="form-group"><div class="form-label">分类</div><div class="cat-tags">${cats.map(c=>`<button class="cat-tag" onclick="selCat(this)">${c}</button>`).join('')}</div></div><div class="form-group"><div class="form-label">${type==='expense'?'付款账户':'到账账户'}</div><select class="form-select" id="s-acc">${allAccs.length?allAccs.map(a=>`<option>${a}</option>`).join(''):'<option disabled>请先添加账户</option>'}</select></div><div class="form-group"><div class="form-label">备注（选填）</div><input class="form-input" id="s-note" placeholder=""/></div><button class="btn-confirm ${type}" onclick="submitTx('${type}')">确认记账</button></div>`;
+    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">${type==='expense'?'📤 记录支出':'📥 记录收入'}</div><div class="sheet-body"><div class="form-group"><input class="form-input big" id="s-amount" type="number" inputmode="decimal" placeholder="0.00" oninput="onAmountInput()"/></div><div class="conv-box"><div class="conv-row"><select class="conv-select" id="conv-from" onchange="onAmountInput()"><option value="CNY">🇨🇳 人民币 CNY</option><option value="EUR">🇪🇺 欧元 EUR</option><option value="GBP">🇬🇧 英镑 GBP</option><option value="JPY">🇯🇵 日元 JPY</option><option value="HKD">🇭🇰 港币 HKD</option><option value="CAD">🇨🇦 加元 CAD</option><option value="AUD">🇦🇺 澳元 AUD</option><option value="SGD">🇸🇬 新加坡元 SGD</option></select></div><div class="conv-result loading" id="conv-result">选择货币后自动换算</div><button class="conv-apply" id="conv-apply" onclick="applyConversion()" style="display:none">↑ 填入换算结果</button></div><div class="form-group"><div class="form-label">分类</div><div class="cat-tags">${cats.map(c=>`<button class="cat-tag" onclick="selCat(this)">${c}</button>`).join('')}</div></div><div class="form-group"><div class="form-label">${type==='expense'?'付款账户':'到账账户'}</div><select class="form-select" id="s-acc">${allAccs.length?allAccs.map(a=>`<option>${a}</option>`).join(''):'<option disabled>请先添加账户</option>'}</select></div><div class="form-group"><div class="form-label">备注（选填）</div><input class="form-input" id="s-note" placeholder=""/></div><button class="btn-confirm ${type}" onclick="submitTx('${type}')">确认记账</button></div>`;
     const first=el.querySelector('.cat-tag');if(first)first.classList.add('sel');
   }else if(type==='add-asset'){
     el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">添加存款账户</div><div class="sheet-body"><div class="form-group"><div class="form-label">账户名称</div><input class="form-input" id="s-name" placeholder="如：招商银行卡"/></div><div class="form-group two-col"><div><div class="form-label">类型</div><select class="form-select" id="s-type"><option>银行卡</option><option>支付宝</option><option>微信</option><option>基金</option><option>现金</option><option>其他</option></select></div><div><div class="form-label">初始余额 ($)</div><input class="form-input" id="s-bal" type="number" inputmode="decimal" value="0"/></div></div><button class="btn-confirm neutral" onclick="submitAsset()">添加账户</button></div>`;
@@ -486,6 +495,58 @@ function submitTransfer(){
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='记账数据_'+today()+'.json';a.click();URL.revokeObjectURL(url);}
 function importData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(data.assets&&data.transactions){S=data;save();renderAll();alert('导入成功！');}else alert('文件格式不正确');}catch{alert('解析失败，请检查文件');}};reader.readAsText(file);}
 function clearData(){if(confirm('确认清空所有数据？此操作不可恢复。')){S={assets:[],debts:[],transactions:[],expCats:[...S.expCats],incCats:[...S.incCats]};save();renderAll();}}
+
+
+// ── Currency converter ──
+let convRates = {};
+let convLastFetch = 0;
+
+async function fetchRates() {
+  const now = Date.now();
+  if (convRates.CNY && now - convLastFetch < 3600000) return; // cache 1hr
+  try {
+    const r = await fetch('https://open.er-api.com/v6/latest/USD');
+    const d = await r.json();
+    if (d.rates) { convRates = d.rates; convLastFetch = now; }
+  } catch(e) {
+    // fallback rates (approximate)
+    convRates = {CNY:7.25,EUR:0.92,GBP:0.79,JPY:149.5,HKD:7.82,CAD:1.36,AUD:1.53,SGD:1.34};
+  }
+}
+
+function onAmountInput() {
+  const amt = parseFloat(document.getElementById('s-amount')?.value) || 0;
+  const from = document.getElementById('conv-from')?.value;
+  const res = document.getElementById('conv-result');
+  const btn = document.getElementById('conv-apply');
+  if (!res) return;
+  if (!amt || amt <= 0) {
+    res.textContent = '选择货币后自动换算';
+    res.className = 'conv-result loading';
+    if (btn) btn.style.display = 'none';
+    return;
+  }
+  res.textContent = '换算中...';
+  res.className = 'conv-result loading';
+  fetchRates().then(() => {
+    const rate = convRates[from];
+    if (!rate) { res.textContent = '汇率获取失败'; return; }
+    const usd = amt / rate;
+    res.textContent = '$' + usd.toFixed(2) + '  (' + amt + ' ' + from + ')';
+    res.className = 'conv-result';
+    if (btn) { btn.style.display = 'block'; btn.dataset.val = usd.toFixed(2); }
+  });
+}
+
+function applyConversion() {
+  const btn = document.getElementById('conv-apply');
+  const inp = document.getElementById('s-amount');
+  if (btn && inp && btn.dataset.val) {
+    inp.value = btn.dataset.val;
+    btn.style.display = 'none';
+    document.getElementById('conv-result').textContent = '✓ 已填入 $' + btn.dataset.val;
+  }
+}
 
 renderAll();
 </script>
