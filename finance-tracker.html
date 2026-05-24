@@ -128,7 +128,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans
     </div>
     <div style="text-align:right">
       <div style="font-size:11px;color:var(--text3)">净资产</div>
-      <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:500" id="header-net">¥0</div>
+      <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:500" id="header-net">$0</div>
     </div>
   </div>
 
@@ -143,14 +143,14 @@ html,body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans
   <!-- ① 总览 -->
   <div class="page active" id="page-0">
     <div class="metrics-row">
-      <div class="metric-card"><div class="metric-label">总资产</div><div class="metric-value blue" id="m-assets">¥0</div></div>
-      <div class="metric-card"><div class="metric-label">总负债</div><div class="metric-value red" id="m-debts">¥0</div></div>
-      <div class="metric-card"><div class="metric-label">净资产</div><div class="metric-value" id="m-net2">¥0</div></div>
+      <div class="metric-card"><div class="metric-label">总资产</div><div class="metric-value blue" id="m-assets">$0</div></div>
+      <div class="metric-card"><div class="metric-label">总负债</div><div class="metric-value red" id="m-debts">$0</div></div>
+      <div class="metric-card"><div class="metric-label">净资产</div><div class="metric-value" id="m-net2">$0</div></div>
     </div>
     <div class="metrics-row">
-      <div class="metric-card"><div class="metric-label">本月收入</div><div class="metric-value green" id="m-in">¥0</div></div>
-      <div class="metric-card"><div class="metric-label">本月支出</div><div class="metric-value red" id="m-out">¥0</div></div>
-      <div class="metric-card"><div class="metric-label">本月结余</div><div class="metric-value" id="m-bal">¥0</div></div>
+      <div class="metric-card"><div class="metric-label">本月收入</div><div class="metric-value green" id="m-in">$0</div></div>
+      <div class="metric-card"><div class="metric-label">本月支出</div><div class="metric-value red" id="m-out">$0</div></div>
+      <div class="metric-card"><div class="metric-label">本月结余</div><div class="metric-value" id="m-bal">$0</div></div>
     </div>
     <div class="section-head">最近记录</div>
     <div id="recent-list" class="card"></div>
@@ -184,10 +184,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans
     <div class="stat-total">
       <div>
         <div class="stat-total-label" id="stat-period-label">今日支出</div>
-        <div class="stat-total-val red" id="stat-total-val">¥0</div>
+        <div class="stat-total-val red" id="stat-total-val">$0</div>
         <div class="stat-sub-row">
-          <div class="stat-sub">收入 <span class="green" id="stat-inc-val">¥0</span></div>
-          <div class="stat-sub">结余 <span id="stat-bal-val">¥0</span></div>
+          <div class="stat-sub">收入 <span class="green" id="stat-inc-val">$0</span></div>
+          <div class="stat-sub">结余 <span id="stat-bal-val">$0</span></div>
         </div>
       </div>
       <div style="font-size:32px" id="stat-period-icon">📅</div>
@@ -251,15 +251,15 @@ let S=JSON.parse(localStorage.getItem(KEY)||'null')||{
 function save(){localStorage.setItem(KEY,JSON.stringify(S));}
 
 // ── Helpers ──
-function fmt(n){const a=Math.abs(n);if(a>=10000)return'¥'+(a/10000).toFixed(1)+'w';return'¥'+a.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function fmtFull(n){return'¥'+Math.abs(n).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmt(n){const a=Math.abs(n);if(a>=10000)return'$'+(a/10000).toFixed(1)+'w';return'$'+a.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtFull(n){return'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function monthOf(s){return s?s.slice(0,7):'';}
 function curMonth(){return today().slice(0,7);}
 function iconFor(t){return{银行卡:'🏦',支付宝:'💙',微信:'💚',基金:'📈',现金:'💵',其他:'💳'}[t]||'💳';}
 function catIcon(c){return{'餐饮':'🍜','购物':'🛍','交通':'🚇','住房':'🏠','娱乐':'🎮','教育':'📚','医疗':'💊','社交':'👫','旅行':'✈️','其他':'📝','工资':'💼','兼职':'🔧','投资':'📊','奖金':'🎉','报销':'🧾','转入':'↩️','还款':'💳'}[c]||'💰';}
 
-document.getElementById('header-date').textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'});
+document.getElementById('header-date').textContent=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
 
 // ── Tab ──
 function switchTab(i){
@@ -429,17 +429,17 @@ function openSheet(type,idx){
     el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">${type==='expense'?'📤 记录支出':'📥 记录收入'}</div><div class="sheet-body"><div class="form-group"><input class="form-input big" id="s-amount" type="number" inputmode="decimal" placeholder="0.00"/></div><div class="form-group"><div class="form-label">分类</div><div class="cat-tags">${cats.map(c=>`<button class="cat-tag" onclick="selCat(this)">${c}</button>`).join('')}</div></div><div class="form-group"><div class="form-label">${type==='expense'?'付款账户':'到账账户'}</div><select class="form-select" id="s-acc">${allAccs.length?allAccs.map(a=>`<option>${a}</option>`).join(''):'<option disabled>请先添加账户</option>'}</select></div><div class="form-group"><div class="form-label">备注（选填）</div><input class="form-input" id="s-note" placeholder=""/></div><button class="btn-confirm ${type}" onclick="submitTx('${type}')">确认记账</button></div>`;
     const first=el.querySelector('.cat-tag');if(first)first.classList.add('sel');
   }else if(type==='add-asset'){
-    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">添加存款账户</div><div class="sheet-body"><div class="form-group"><div class="form-label">账户名称</div><input class="form-input" id="s-name" placeholder="如：招商银行卡"/></div><div class="form-group two-col"><div><div class="form-label">类型</div><select class="form-select" id="s-type"><option>银行卡</option><option>支付宝</option><option>微信</option><option>基金</option><option>现金</option><option>其他</option></select></div><div><div class="form-label">初始余额 (¥)</div><input class="form-input" id="s-bal" type="number" inputmode="decimal" value="0"/></div></div><button class="btn-confirm neutral" onclick="submitAsset()">添加账户</button></div>`;
+    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">添加存款账户</div><div class="sheet-body"><div class="form-group"><div class="form-label">账户名称</div><input class="form-input" id="s-name" placeholder="如：招商银行卡"/></div><div class="form-group two-col"><div><div class="form-label">类型</div><select class="form-select" id="s-type"><option>银行卡</option><option>支付宝</option><option>微信</option><option>基金</option><option>现金</option><option>其他</option></select></div><div><div class="form-label">初始余额 ($)</div><input class="form-input" id="s-bal" type="number" inputmode="decimal" value="0"/></div></div><button class="btn-confirm neutral" onclick="submitAsset()">添加账户</button></div>`;
   }else if(type==='edit-asset'){
     const a=S.assets[idx];
-    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">编辑账户</div><div class="sheet-body"><div class="form-group"><div class="form-label">账户名称</div><input class="form-input" id="s-name" value="${a.name}"/></div><div class="form-group two-col"><div><div class="form-label">类型</div><select class="form-select" id="s-type">${['银行卡','支付宝','微信','基金','现金','其他'].map(t=>`<option${t===a.type?' selected':''}>${t}</option>`).join('')}</select></div><div><div class="form-label">当前余额 (¥)</div><input class="form-input" id="s-bal" type="number" inputmode="decimal" value="${a.balance}"/></div></div><button class="btn-confirm neutral" onclick="submitEditAsset(${idx})">保存修改</button></div>`;
+    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">编辑账户</div><div class="sheet-body"><div class="form-group"><div class="form-label">账户名称</div><input class="form-input" id="s-name" value="${a.name}"/></div><div class="form-group two-col"><div><div class="form-label">类型</div><select class="form-select" id="s-type">${['银行卡','支付宝','微信','基金','现金','其他'].map(t=>`<option${t===a.type?' selected':''}>${t}</option>`).join('')}</select></div><div><div class="form-label">当前余额 ($)</div><input class="form-input" id="s-bal" type="number" inputmode="decimal" value="${a.balance}"/></div></div><button class="btn-confirm neutral" onclick="submitEditAsset(${idx})">保存修改</button></div>`;
   }else if(type==='add-credit'){
-    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">添加信用卡 / 负债</div><div class="sheet-body"><div class="form-group"><div class="form-label">名称</div><input class="form-input" id="s-name" placeholder="如：招行信用卡、花呗"/></div><div class="form-group two-col"><div><div class="form-label">信用额度 (¥)</div><input class="form-input" id="s-limit" type="number" inputmode="decimal" value="10000"/></div><div><div class="form-label">当前欠款 (¥)</div><input class="form-input" id="s-bal" type="number" inputmode="decimal" value="0"/></div></div><button class="btn-confirm neutral" onclick="submitCredit()">添加</button></div>`;
+    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">添加信用卡 / 负债</div><div class="sheet-body"><div class="form-group"><div class="form-label">名称</div><input class="form-input" id="s-name" placeholder="如：招行信用卡、花呗"/></div><div class="form-group two-col"><div><div class="form-label">信用额度 ($)</div><input class="form-input" id="s-limit" type="number" inputmode="decimal" value="10000"/></div><div><div class="form-label">当前欠款 ($)</div><input class="form-input" id="s-bal" type="number" inputmode="decimal" value="0"/></div></div><button class="btn-confirm neutral" onclick="submitCredit()">添加</button></div>`;
   }else if(type==='settle'){
     const d=S.debts[idx];
-    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">💳 还款：${d.name}</div><div class="sheet-body"><div style="background:var(--bg3);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">当前欠款</span><span style="font-family:'DM Mono',monospace;font-size:18px;color:var(--red)">${fmtFull(d.balance)}</span></div><div class="form-group"><div class="form-label">扣款账户</div><select class="form-select" id="s-settle-from">${S.assets.map(a=>`<option>${a.name}</option>`).join('')||'<option disabled>请先添加存款账户</option>'}</select></div><div class="form-group"><div class="form-label">还款金额 (¥)</div><input class="form-input big" id="s-settle-amt" type="number" inputmode="decimal" value="${d.balance.toFixed(2)}"/></div><button class="btn-confirm income" onclick="submitSettle(${idx})">确认还款</button></div>`;
+    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">💳 还款：${d.name}</div><div class="sheet-body"><div style="background:var(--bg3);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">当前欠款</span><span style="font-family:'DM Mono',monospace;font-size:18px;color:var(--red)">${fmtFull(d.balance)}</span></div><div class="form-group"><div class="form-label">扣款账户</div><select class="form-select" id="s-settle-from">${S.assets.map(a=>`<option>${a.name}</option>`).join('')||'<option disabled>请先添加存款账户</option>'}</select></div><div class="form-group"><div class="form-label">还款金额 ($)</div><input class="form-input big" id="s-settle-amt" type="number" inputmode="decimal" value="${d.balance.toFixed(2)}"/></div><button class="btn-confirm income" onclick="submitSettle(${idx})">确认还款</button></div>`;
   }else if(type==='transfer'){
-    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">⇆ 转账</div><div class="sheet-body"><div class="form-group"><div class="form-label">从</div><select class="form-select" id="s-tr-from">${S.assets.map(a=>`<option>${a.name}</option>`).join('')||'<option disabled>无账户</option>'}</select></div><div class="form-group"><div class="form-label">到</div><select class="form-select" id="s-tr-to">${S.assets.map(a=>`<option>${a.name}</option>`).join('')||'<option disabled>无账户</option>'}</select></div><div class="form-group"><div class="form-label">金额 (¥)</div><input class="form-input big" id="s-tr-amt" type="number" inputmode="decimal" placeholder="0.00"/></div><button class="btn-confirm neutral" onclick="submitTransfer()">确认转账</button></div>`;
+    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">⇆ 转账</div><div class="sheet-body"><div class="form-group"><div class="form-label">从</div><select class="form-select" id="s-tr-from">${S.assets.map(a=>`<option>${a.name}</option>`).join('')||'<option disabled>无账户</option>'}</select></div><div class="form-group"><div class="form-label">到</div><select class="form-select" id="s-tr-to">${S.assets.map(a=>`<option>${a.name}</option>`).join('')||'<option disabled>无账户</option>'}</select></div><div class="form-group"><div class="form-label">金额 ($)</div><input class="form-input big" id="s-tr-amt" type="number" inputmode="decimal" placeholder="0.00"/></div><button class="btn-confirm neutral" onclick="submitTransfer()">确认转账</button></div>`;
   }
   document.getElementById('sheet-overlay').classList.add('open');
   setTimeout(()=>{const a=el.querySelector('#s-amount,#s-settle-amt,#s-tr-amt');if(a)a.focus();},300);
