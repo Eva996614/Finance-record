@@ -316,9 +316,18 @@ function renderDebts(){
 function renderTx(){
   const el=document.getElementById('tx-list');
   if(!S.transactions.length){el.innerHTML='<div class="empty" style="padding-top:60px"><div class="empty-icon">📒</div>暂无收支记录</div>';return;}
+  const indexed=[...S.transactions].map((t,i)=>({...t,_i:i})).reverse();
   const byDate={};
-  [...S.transactions].reverse().forEach(t=>{(byDate[t.date]=byDate[t.date]||[]).push(t);});
-  el.innerHTML=Object.keys(byDate).sort((a,b)=>b.localeCompare(a)).map(date=>`<div class="tx-date-group">${date}</div><div class="card">${byDate[date].map(t=>`<div class="card-row"><div class="row-left"><div class="row-icon" style="background:${t.type==='income'?'var(--green-dim)':'var(--red-dim)'}">${catIcon(t.cat)}</div><div><div class="row-name">${t.note||t.cat}</div><div class="row-sub">${t.cat} · ${t.account}</div></div></div><div class="row-amount ${t.type==='income'?'green':'red'}">${t.type==='income'?'+':'-'}${fmtFull(t.amount)}</div></div>`).join('')}</div>`).join('');
+  indexed.forEach(t=>{(byDate[t.date]=byDate[t.date]||[]).push(t);});
+  el.innerHTML=Object.keys(byDate).sort((a,b)=>b.localeCompare(a)).map(date=>`<div class="tx-date-group">${date}</div><div class="card">${byDate[date].map(t=>`<div class="card-row" style="flex-direction:column;align-items:stretch;gap:8px"><div style="display:flex;align-items:center;justify-content:space-between"><div class="row-left"><div class="row-icon" style="background:${t.type==='income'?'var(--green-dim)':'var(--red-dim)'}">${catIcon(t.cat)}</div><div><div class="row-name">${t.note||t.cat}</div><div class="row-sub">${t.cat} · ${t.account}</div></div></div><div class="row-amount ${t.type==='income'?'green':'red'}">${t.type==='income'?'+':'-'}${fmtFull(t.amount)}</div></div><div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn-sm" onclick="openSheet('edit-tx',${t._i})">✏️ 编辑</button><button class="btn-sm red" onclick="deleteTx(${t._i})">🗑 删除</button></div></div>`).join('')}</div>`).join('');
+}
+
+function deleteTx(i){
+  if(!confirm('确认删除这条记录？'))return;
+  const tx=S.transactions[i];
+  if(tx.type==='expense'){const asset=S.assets.find(a=>a.name===tx.account);const debt=S.debts.find(d=>d.name===tx.account);if(asset)asset.balance+=tx.amount;else if(debt)debt.balance-=tx.amount;}
+  else{const asset=S.assets.find(a=>a.name===tx.account);if(asset)asset.balance-=tx.amount;}
+  S.transactions.splice(i,1);save();renderAll();
 }
 
 function renderCats(){
@@ -439,6 +448,11 @@ function openSheet(type,idx){
   }else if(type==='settle'){
     const d=S.debts[idx];
     el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">💳 还款：${d.name}</div><div class="sheet-body"><div style="background:var(--bg3);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text2)">当前欠款</span><span style="font-family:'DM Mono',monospace;font-size:18px;color:var(--red)">${fmtFull(d.balance)}</span></div><div class="form-group"><div class="form-label">扣款账户</div><select class="form-select" id="s-settle-from">${S.assets.map(a=>`<option>${a.name}</option>`).join('')||'<option disabled>请先添加存款账户</option>'}</select></div><div class="form-group"><div class="form-label">还款金额 ($)</div><input class="form-input big" id="s-settle-amt" type="number" inputmode="decimal" value="${d.balance.toFixed(2)}"/></div><button class="btn-confirm income" onclick="submitSettle(${idx})">确认还款</button></div>`;
+  }else if(type==='edit-tx'){
+    const t=S.transactions[idx];
+    const cats=t.type==='expense'?S.expCats:S.incCats;
+    const allAccs=t.type==='expense'?[...S.assets.map(a=>a.name),...S.debts.map(d=>d.name)]:S.assets.map(a=>a.name);
+    el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">${t.type==='expense'?'✏️ 编辑支出':'✏️ 编辑收入'}</div><div class="sheet-body"><div class="form-group"><input class="form-input big" id="s-amount" type="number" inputmode="decimal" value="${t.amount}"/></div><div class="form-group"><div class="form-label">分类</div><div class="cat-tags">${cats.map(c=>`<button class="cat-tag${c===t.cat?' sel':''}" onclick="selCat(this)">${c}</button>`).join('')}</div></div><div class="form-group"><div class="form-label">${t.type==='expense'?'付款账户':'到账账户'}</div><select class="form-select" id="s-acc">${allAccs.map(a=>`<option${a===t.account?' selected':''}>${a}</option>`).join('')}</select></div><div class="form-group"><div class="form-label">备注（选填）</div><input class="form-input" id="s-note" value="${t.note||''}"/></div><button class="btn-confirm ${t.type}" onclick="submitEditTx(${idx})">保存修改</button></div>`;
   }else if(type==='transfer'){
     el.innerHTML=`<div class="sheet-handle"></div><div class="sheet-title">⇆ 转账</div><div class="sheet-body"><div class="form-group"><div class="form-label">从</div><select class="form-select" id="s-tr-from">${S.assets.map(a=>`<option>${a.name}</option>`).join('')||'<option disabled>无账户</option>'}</select></div><div class="form-group"><div class="form-label">到</div><select class="form-select" id="s-tr-to">${S.assets.map(a=>`<option>${a.name}</option>`).join('')||'<option disabled>无账户</option>'}</select></div><div class="form-group"><div class="form-label">金额 ($)</div><input class="form-input big" id="s-tr-amt" type="number" inputmode="decimal" placeholder="0.00"/></div><button class="btn-confirm neutral" onclick="submitTransfer()">确认转账</button></div>`;
   }
@@ -480,6 +494,24 @@ function submitTransfer(){
   if(!amount||amount<=0){alert('请输入金额');return;}if(fromName===toName){alert('转出和转入账户不能相同');return;}
   const from=S.assets.find(a=>a.name===fromName);const to=S.assets.find(a=>a.name===toName);
   if(from)from.balance-=amount;if(to)to.balance+=amount;
+  save();closeSheet(null,true);renderAll();
+}
+
+// ── Edit transaction ──
+function submitEditTx(i){
+  const tx=S.transactions[i];
+  const newAmount=parseFloat(document.getElementById('s-amount').value)||0;
+  const newCat=document.querySelector('#sheet-inner .cat-tag.sel')?.textContent||tx.cat;
+  const newAcc=document.getElementById('s-acc').value;
+  const newNote=document.getElementById('s-note').value.trim();
+  if(!newAmount||newAmount<=0){alert('请输入金额');return;}
+  // reverse old effect
+  if(tx.type==='expense'){const a=S.assets.find(a=>a.name===tx.account);const d=S.debts.find(d=>d.name===tx.account);if(a)a.balance+=tx.amount;else if(d)d.balance-=tx.amount;}
+  else{const a=S.assets.find(a=>a.name===tx.account);if(a)a.balance-=tx.amount;}
+  // apply new effect
+  if(tx.type==='expense'){const a=S.assets.find(a=>a.name===newAcc);const d=S.debts.find(d=>d.name===newAcc);if(a)a.balance-=newAmount;else if(d)d.balance+=newAmount;}
+  else{const a=S.assets.find(a=>a.name===newAcc);if(a)a.balance+=newAmount;}
+  S.transactions[i]={...tx,amount:newAmount,cat:newCat,account:newAcc,note:newNote};
   save();closeSheet(null,true);renderAll();
 }
 
